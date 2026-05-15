@@ -25,11 +25,13 @@ The architecture focuses on:
                             |
                           UFW
                             |
+                     nftables GeoIP
+                            |
           +-----------------+-----------------+
           |                                   |
        Postfix                            WireGuard
           |                                   |
-          |                              SSH Access
+       Fail2ban                          SSH Access
           |
        Rspamd
           |
@@ -41,6 +43,7 @@ The architecture focuses on:
     |
   WebCit
 
+            BorgBackup
 ```
 
 ---
