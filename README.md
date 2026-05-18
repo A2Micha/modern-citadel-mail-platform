@@ -344,3 +344,9 @@ MIT License
 This project is not about nostalgia.
 
 It is about proving that modern communication standards and reliable self-hosted infrastructure can still be built using simple, understandable and efficient Unix-based architectu
+
+
+## Documentation
+
+- [Platform Architecture](docs/platform-architecture.md)
+- [Postfix LMTP Migration](docs/postfix-lmtp-migration.md)
