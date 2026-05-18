@@ -1,6 +1,6 @@
 # Modern Citadel Mail Platform
 
-A modern self-hosted Unix mail and collaboration platform based on Citadel Groupware, Postfix, Rspamd and native Linux infrastructure.
+Modern Citadel Mail Platform is a native Linux mail and collaboration stack based on Citadel Groupware, Postfix, LMTP and Rspamd.
 
 This project demonstrates that modern, secure and scalable communication infrastructure can still be built using transparent Unix principles without container orchestration or cloud dependency.
 
