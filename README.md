@@ -141,6 +141,26 @@ Advantages:
 
 ---
 
+# Platform Components
+
+| Component | Purpose |
+|---|---|
+| Citadel Groupware | Mailstore, groupware and collaboration platform |
+| Postfix | SMTP edge transport and queue management |
+| LMTP | Direct local mail delivery into Citadel |
+| Rspamd | Spam filtering, DKIM, ARC and policy enforcement |
+| Redis | Rspamd statistics and cache backend |
+| Fail2Ban | Abuse protection and automated banning |
+| nftables | Packet filtering and traffic control |
+| UFW | Host-level firewall management |
+| Hetzner Firewall | Upstream infrastructure firewall |
+| WireGuard | Secure administrative VPN access |
+| WebCit | Webmail and groupware frontend |
+| OpenDKIM / ARC | Message signing and authentication |
+| Postfix Queue | Reliable deferred mail handling |
+
+---
+
 # Documentation
 
 ## Core Documentation
