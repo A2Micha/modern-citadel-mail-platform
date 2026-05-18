@@ -101,6 +101,12 @@ The current production system runs on:
 
 while maintaining very low CPU and memory utilization.
 
+## Infrastructure Overview
+
+![Hetzner Infrastructure](screenshots/hetzner-overview.png)
+
+## Production htop Snapshot
+
 ![Production htop](screenshots/htop-production.png)
 
 ---
@@ -169,15 +175,27 @@ Advantages:
 - [Mail Flow](docs/mail-flow.md)
 - [Infrastructure](docs/infrastructure.md)
 - [Performance](docs/performance.md)
+- [Native Linux Deployment](docs/native-linux-deployment.md)
 
 ## Security Documentation
 
 - [Security Model](docs/security-model.md)
 - [Security Stack](docs/security-stack.md)
+- [Rspamd Integration](docs/rspamd-integration.md)
 
 ## Mail Architecture
 
 - [Postfix LMTP Migration](docs/postfix-lmtp-migration.md)
+- [Mail Queue Philosophy](docs/mail-queue-philosophy.md)
+
+## Citadel Modernization
+
+- [Citadel Modernization](docs/citadel-modernization.md)
+
+## Technical Diagrams
+
+- [Full Mail Stack](diagrams/full-mail-stack.md)
+- [Platform Architecture](diagrams/platform-architecture.md)
 
 ---
 
