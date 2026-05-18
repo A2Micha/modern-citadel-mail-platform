@@ -2,9 +2,9 @@
 
 ## Overview
 
-The Modern Citadel Mail Platform uses a modular mail flow architecture designed around clear separation of responsibilities.
+The Modern Citadel Mail Platform uses a modular Unix-style mail architecture with clear separation of responsibilities.
 
-Instead of combining all mail handling functions into a single monolithic application, the platform separates:
+Instead of combining all functionality into a monolithic application, the platform separates:
 
 - SMTP transport
 - spam filtering
@@ -12,7 +12,7 @@ Instead of combining all mail handling functions into a single monolithic applic
 - local delivery
 - mailbox storage
 
-into specialized Unix services.
+into specialized native Linux services.
 
 This improves:
 
@@ -20,7 +20,7 @@ This improves:
 - transparency
 - troubleshooting
 - modularity
-- long-term reliability
+- operational reliability
 
 ---
 
@@ -28,21 +28,17 @@ This improves:
 
 Incoming mail follows this path:
 
-```text
-Internet
-   |
-Postfix SMTP Edge
-   |
-Rspamd Filtering
-   |
-LMTP Delivery
-   |
-Citadel Mailstore
+```mermaid
+flowchart TD
+    A[Internet] --> B[Postfix SMTP Edge]
+    B --> C[Rspamd Filtering]
+    C --> D[LMTP Delivery]
+    D --> E[Citadel Mailstore]
 ```
 
 ---
 
-## 1. Postfix SMTP Edge
+## Postfix SMTP Edge
 
 Postfix acts as the public SMTP entry point.
 
@@ -59,9 +55,9 @@ Postfix intentionally operates as the external mail transport layer while Citade
 
 ---
 
-## 2. Rspamd Filtering
+## Rspamd Filtering
 
-Rspamd is integrated through Postfix milters.
+Rspamd is integrated using Postfix milters.
 
 Responsibilities:
 
@@ -69,46 +65,48 @@ Responsibilities:
 - DKIM signing
 - ARC signing
 - DMARC evaluation
-- reputation analysis
 - DNSBL checks
-- header analysis
+- reputation analysis
+- policy enforcement
 
 Rspamd processes mail before final local delivery.
 
 ---
 
-## 3. LMTP Local Delivery
+## LMTP Delivery
 
 After filtering, Postfix delivers mail to Citadel using LMTP.
 
-```text
-Postfix -> LMTP -> Citadel
+```mermaid
+flowchart LR
+    A[Postfix] --> B[LMTP Socket]
+    B --> C[Citadel]
 ```
 
-LMTP replaces the older SMTP-based local handoff previously used between Postfix and Citadel.
+LMTP replaces the older SMTP-based local delivery previously used between Postfix and Citadel.
 
 Advantages of LMTP:
 
 - direct mailbox delivery
-- per-recipient delivery status
 - cleaner local architecture
-- reduced SMTP complexity internally
-- improved separation between SMTP transport and mailbox handling
+- reduced internal SMTP complexity
+- proper local delivery semantics
+- improved service separation
 
 Citadel provides native LMTP sockets for local message injection.
 
 ---
 
-## 4. Citadel Mailstore
+## Citadel Mailstore
 
 Citadel handles:
 
 - mailbox storage
 - IMAP access
-- message indexing
 - webmail
 - groupware functionality
 - collaboration features
+- message indexing
 
 Citadel acts as the final message destination within the platform.
 
@@ -118,47 +116,13 @@ Citadel acts as the final message destination within the platform.
 
 Outgoing mail follows this path:
 
-```text
-Mail Client
-   |
-Citadel Submission
-   |
-Postfix
-   |
-Rspamd DKIM/ARC
-   |
-Internet
+```mermaid
+flowchart TD
+    A[Mail Client] --> B[Citadel Submission]
+    B --> C[Postfix]
+    C --> D[Rspamd DKIM/ARC]
+    D --> E[Internet]
 ```
-
----
-
-## Outbound Responsibilities
-
-### Citadel
-
-Handles:
-
-- authenticated submission
-- user access
-- message composition
-- mailbox management
-
-### Postfix
-
-Handles:
-
-- outbound SMTP transport
-- remote TLS negotiation
-- queue retries
-- external routing
-
-### Rspamd
-
-Handles:
-
-- DKIM signing
-- ARC signing
-- outbound filtering policies
 
 ---
 
@@ -175,6 +139,7 @@ The mail flow integrates multiple security layers:
 - DANE/TLSA
 - Fail2Ban
 - GeoIP filtering
+- WireGuard restricted administration
 
 This allows the platform to remain lightweight while still supporting modern mail security standards.
 
@@ -182,13 +147,13 @@ This allows the platform to remain lightweight while still supporting modern mai
 
 # Design Philosophy
 
-The mail flow intentionally follows classic Unix principles:
+The platform intentionally follows classic Unix principles:
 
 - small specialized services
 - clear separation of responsibilities
 - transparent infrastructure
-- minimal abstraction layers
 - native Linux integration
+- minimal abstraction layers
 
 The goal is not maximum complexity.
 
