@@ -90,6 +90,33 @@ into dedicated Unix services.
 
 ---
 
+# Reputation Management
+
+The platform integrates modern reputation-aware mail handling using:
+
+- Rspamd
+- Redis
+- Microsoft SNDS
+- Microsoft JMRP
+- ARF complaint processing
+- custom Lua extensions
+
+The goal is not only spam filtering but continuous reputation monitoring and adaptive filtering behavior.
+
+This allows integration of:
+
+- complaint feedback loops
+- sender reputation telemetry
+- adaptive filtering
+- abuse-aware automation
+- provider-specific deliverability monitoring
+
+For additional details see:
+
+[Reputation Management Documentation](docs/reputation-management.md)
+
+---
+
 # Infrastructure
 
 The current production system runs on:
