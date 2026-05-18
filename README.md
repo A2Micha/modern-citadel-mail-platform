@@ -348,5 +348,8 @@ It is about proving that modern communication standards and reliable self-hosted
 
 ## Documentation
 
-- [Platform Architecture](docs/platform-architecture.md)
+- [Design Philosophy](docs/design-philosophy.md)
+- [Mail Flow](docs/mail-flow.md)
+- [Security Model](docs/security-model.md)
 - [Postfix LMTP Migration](docs/postfix-lmtp-migration.md)
+- [Platform Architecture](docs/platform-architecture.md)
