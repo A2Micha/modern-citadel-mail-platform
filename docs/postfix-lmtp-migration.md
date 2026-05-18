@@ -39,9 +39,9 @@ Citadel
 ## Previous `/etc/postfix/transport`
 
 ```text
-motobike.fun smtp:[127.0.0.1]:2025
-g00r00.com smtp:[127.0.0.1]:2025
-basmatibombers.biz smtp:[127.0.0.1]:2025
+m*****.fun smtp:[127.0.0.1]:2025
+g*****.com smtp:[127.0.0.1]:2025
+ba******.biz smtp:[127.0.0.1]:2025
 ```
 
 This setup worked reliably and was stable in production.
@@ -162,9 +162,9 @@ citadel-lmtp unix  -       n       n       -       -       lmtp
 `/etc/postfix/transport` was modified:
 
 ```text
-motobike.fun       citadel-lmtp:unix:/usr/local/citadel/lmtp-unfiltered.socket
-g00r00.com         citadel-lmtp:unix:/usr/local/citadel/lmtp-unfiltered.socket
-basmatibombers.biz citadel-lmtp:unix:/usr/local/citadel/lmtp-unfiltered.socket
+m****.fun       citadel-lmtp:unix:/usr/local/citadel/lmtp-unfiltered.socket
+g*****.com         citadel-lmtp:unix:/usr/local/citadel/lmtp-unfiltered.socket
+b*********.biz citadel-lmtp:unix:/usr/local/citadel/lmtp-unfiltered.socket
 ```
 
 ---
@@ -216,8 +216,8 @@ Successful delivery log example:
 
 ```text
 postfix/lmtp[263307]: BE6235E111:
-to=<michael@motobike.fun>,
-relay=motobike.fun[/usr/local/citadel/lmtp-unfiltered.socket],
+to=<m******@m*******.fun>,
+relay=m*******.fun[/usr/local/citadel/lmtp-unfiltered.socket],
 dsn=2.0.0,
 status=sent (250 Message accepted.)
 ```
