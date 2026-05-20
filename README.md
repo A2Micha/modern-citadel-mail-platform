@@ -130,7 +130,7 @@ while maintaining very low CPU and memory utilization.
 
 ## Infrastructure Overview
 
-![Hetzner Infrastructure](screenshots/hetzner-overview.png)
+![Hetzner Infrastructure](screenshots/hetzner-cx22.png)
 
 ## Production htop Snapshot
 
