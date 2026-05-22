@@ -209,6 +209,7 @@ Advantages:
 - [Security Model](docs/security-model.md)
 - [Security Stack](docs/security-stack.md)
 - [Rspamd Integration](docs/rspamd-integration.md)
+- [WKD Integration](docs/wkd-integration.md)
 
 ## Mail Architecture
 
