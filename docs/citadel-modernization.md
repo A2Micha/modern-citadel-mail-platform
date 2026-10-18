@@ -78,6 +78,8 @@ This aligns naturally with native Linux deployments.
 
 One of the most important architectural improvements was migrating local delivery from SMTP to LMTP.
 
+Postfix delivers inbound mail to the unfiltered LMTP socket after the Rspamd milter.
+
 Benefits include:
 
 - direct mailbox validation
@@ -90,24 +92,37 @@ This modernizes local mail injection significantly.
 
 ---
 
+# Submission and Outbound Mail
+
+Citadel accepts client submission on port 587 (STARTTLS) and port 465 (implicit TLS). IMAPS stays on port 993.
+
+Citadel DKIM-signs outbound mail with selector `dvbbt` for motobike.fun, g00r00.com and vibedullis.com.
+
+The smarthost is a localhost-only Postfix listener at `127.0.0.1:10025` (`postfix/citadel-out`). Postfix runs the Rspamd milter there and delivers the message to the Internet. Rspamd DKIM signing stays disabled, and Rspamd ARC-signs with selector `arc2026`.
+
+Since 2026-10-18, Citadel compares passwords case-sensitively (`c_case_sensitive_passwords=1`).
+
+---
+
 # Modern Security Integration
 
 The original Citadel architecture predates many modern mail security standards.
 
-The surrounding infrastructure therefore adds:
+Citadel itself provides submission, DKIM signing and case-sensitive password checks.
+
+The surrounding infrastructure adds:
 
 - SPF validation
 - DKIM verification
 - DMARC enforcement
-- ARC handling
+- ARC signing
 - advanced spam filtering
 - reputation systems
-- TLS enforcement
+- TLS on the public services
 - abuse prevention
+- recipient verification in Postfix
 
-without modifying Citadel itself.
-
-This preserves platform stability while modernizing external security handling.
+This preserves the Citadel mailstore while modernizing transport and authentication around it.
 
 ---
 

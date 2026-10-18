@@ -7,17 +7,26 @@ A[Internet]
 --> D[nftables / GeoIP]
 --> E[Fail2Ban]
 
-E --> F[Postfix SMTP Edge]
+E --> F[Postfix SMTP :25]
 
-F --> G[Rspamd Filtering]
+F --> G[Rspamd Milter]
 
-G --> H[LMTP Delivery]
+G --> H[Unfiltered LMTP]
 
-H --> I[Citadel Mailstore]
+H --> I[Citadel]
 
-I --> J[IMAP / WebCit]
+I --> J[IMAPS 993 / WebCit]
 
-K[WireGuard VPN]
+K[Mail Client]
+--> S[Citadel 587 / 465]
+
+S --> I
+
+I -->|DKIM dvbbt| O[postfix/citadel-out]
+
+O -->|ARC arc2026| N[Internet]
+
+W[WireGuard VPN]
 --> L[Administrative Access]
 
 L --> I

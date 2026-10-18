@@ -2,14 +2,14 @@
 
 ## Overview
 
-This platform uses Rspamd as the central mail filtering and policy engine.
+This platform uses Rspamd 3.4 as the central mail filtering and policy engine.
 
-Rspamd is deeply integrated into the mail flow and operates as a modern high-performance filtering layer between Postfix and Citadel LMTP delivery.
+Rspamd is deeply integrated into the mail flow and operates as a modern high-performance filtering layer between Postfix and Citadel LMTP delivery. The same milter also runs on the localhost outbound relay.
 
 The integration provides:
 
 - Spam filtering
-- DKIM signing and verification
+- DKIM verification
 - SPF validation
 - DMARC enforcement
 - ARC signing
@@ -70,7 +70,9 @@ worker {
 }
 ```
 
-The proxy worker integrates directly with Postfix using the Milter protocol.
+The proxy worker integrates directly with Postfix using the Milter protocol on `localhost:11332`.
+
+`milter_headers` adds `Authentication-Results` to processed mail.
 
 Benefits:
 
@@ -84,18 +86,9 @@ Benefits:
 
 # Redis Backend
 
-Redis is used as the central backend for multiple Rspamd components.
+Redis is used for Bayesian statistics and for the ARF suppression list.
 
-Features using Redis include:
-
-- history storage
-- fuzzy hashes
-- Bayesian statistics
-- neural learning
-- reputation systems
-- greylisting
-
-This allows fast lookups and efficient memory usage while keeping the filtering pipeline lightweight.
+There is intentionally no global Redis block. Bayes has its own Redis settings, and the ARF module configures its Redis server in `modules.d/motobike_arf.conf`.
 
 ---
 
@@ -107,26 +100,46 @@ The platform implements modern mail authentication standards.
 
 SPF validation is enabled to verify sender authorization.
 
+SPF authorizes `65.109.224.37`.
+
 ## DKIM
 
-Rspamd performs DKIM verification and DKIM signing.
+Rspamd verifies DKIM signatures.
+
+Citadel DKIM-signs outbound mail with selector `dvbbt` for motobike.fun, g00r00.com and vibedullis.com. Rspamd DKIM signing is disabled, so relayed mail keeps the Citadel signature:
+
+```ucl
+dkim_signing {
+    enabled = false;
+}
+```
 
 ## DMARC
 
 DMARC policies are enforced to reduce spoofing and phishing attacks.
 
+The hosted domains publish DMARC with `p=reject` and `sp=reject`.
+
 ## ARC
 
-ARC signing is enabled for forwarded mail authentication preservation.
+Rspamd ARC-signs outbound mail on the `postfix/citadel-out` relay.
+
+ARC uses domain motobike.fun and selector `arc2026` for all three domains. The DNS TXT record is `arc2026._domainkey.motobike.fun`, published at GoDaddy.
 
 ```ucl
 arc {
-    sign_inbound = true;
-    use_domain = "recipient";
+    domain = "motobike.fun";
+    selector = "arc2026";
+    use_domain_custom = "motobike.fun";
+    sign_local = true;
+    sign_inbound = false;
+    sign_authenticated = false;
 }
 ```
 
-This improves trust handling for forwarded or relayed messages.
+`sign_local` applies to 127.0.0.1 and ::1. `sign_inbound` and `sign_authenticated` are false.
+
+The outbound listener sets `milter_default_action=accept`.
 
 ---
 
@@ -153,11 +166,37 @@ Bayesian filtering continuously improves spam detection quality.
 
 ## Fuzzy Hashing
 
-Rspamd fuzzy storage is enabled using Redis backend support.
+Rspamd fuzzy hashing is part of the filtering pipeline.
+
+## Outbound Relay Policy
+
+The settings rule `outbound_citadel` matches 127.0.0.1 and ::1.
+
+For that traffic it disables these actions:
+
+- reject
+- add-header
+- rewrite-subject
+- greylist
+
+Outbound mail from Citadel is accepted under that rule. A recipient on the ARF suppression list is refused on `postfix/citadel-out`.
+
+## Sender Blacklist
+
+One multimap file lists blocked senders, one address or domain per line.
+
+Four rules read that file. Each rule uses `action=reject`:
+
+- envelope sender by domain
+- envelope sender by full address
+- `From:` header by domain
+- `From:` header by full address
 
 ## Greylisting
 
 Greylisting is enabled for unknown senders.
+
+The `outbound_citadel` rule disables greylisting for 127.0.0.1 and ::1.
 
 ```ucl
 greylist {
@@ -186,15 +225,25 @@ The platform includes custom Lua-based Rspamd modules.
 
 ## motobike_arf
 
+`motobike_arf.lua` is loaded from `rspamd.local.lua`. Its Redis server is configured in `modules.d/motobike_arf.conf`.
+
 ```ucl
 motobike_arf {
     enabled = true;
 }
 ```
 
-This custom module extends abuse handling and automated filtering capabilities.
+Incoming ARF complaint reports (`multipart/report`, `message/feedback-report`) create a Redis key `suppression:<address>` for 180 days. The address is taken from the `Original-Rcpt-To` field.
 
-The integration demonstrates the flexibility of Rspamd and the ability to extend filtering behavior beyond standard installations.
+Outbound mail through the `postfix/citadel-out` relay to a suppressed address is rejected with:
+
+```text
+554 5.7.1 Recipient suppressed (ARF complaint)
+```
+
+This has been in production since 2026-10-18.
+
+Microsoft SNDS and JMRP are set up for the server IP.
 
 ---
 

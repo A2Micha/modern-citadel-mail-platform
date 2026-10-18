@@ -9,23 +9,27 @@ D[Fail2Ban]
 end
 
 subgraph Mail Transport
-E[Postfix SMTP Edge]
+E[Postfix SMTP :25]
 F[Postfix Queue]
-G[Rspamd Filtering]
-H[LMTP Local Delivery]
+G[Rspamd Milter]
+H[Unfiltered LMTP]
+O[postfix/citadel-out]
 end
 
 subgraph Groupware Layer
 I[Citadel Mailstore]
-J[WebCit]
-K[IMAP / SMTP Clients]
+J[WebCit 80/443]
+K[IMAP 993 / Submission 587/465]
 end
 
 A --> B --> C --> D --> E
 E --> F --> G --> H --> I
 
+K --> I
+I -->|DKIM dvbbt| O
+O -->|ARC arc2026| N[Internet]
+
 I --> J
-I --> K
 ```
 
 # Additional Architecture Diagrams
@@ -67,7 +71,7 @@ flowchart TD
 
 A[Citadel Mailstore]
 
-A --> B[WebCit]
-A --> C[IMAP Clients]
-A --> D[SMTP Submission]
+A --> B[WebCit HTTP/HTTPS]
+A --> C[IMAPS 993]
+A --> D[Submission 587/465]
 ```

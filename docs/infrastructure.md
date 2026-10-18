@@ -48,3 +48,9 @@ Instead, the project focuses on:
 - low operational complexity
 
 This demonstrates that modern and secure communication infrastructure can still operate efficiently on small systems.
+
+---
+
+# Backups
+
+The production server uses daily Hetzner backups.

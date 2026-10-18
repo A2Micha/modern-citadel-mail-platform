@@ -158,6 +158,26 @@ This confirms compatibility with large enterprise mail ecosystems.
 
 ---
 
+# Outbound Authentication Results
+
+Outbound mail from this platform was checked on 2026-10-18.
+
+Citadel signs with DKIM selector `dvbbt`. Rspamd adds an ARC seal with selector `arc2026`. SPF authorizes `65.109.224.37`. DMARC is published as `p=reject` and `sp=reject`.
+
+Gmail reported:
+
+```text
+dkim=pass (dvbbt)
+spf=pass
+dmarc=pass (p=reject)
+arc=pass
+TLS 1.3
+```
+
+Microsoft/Outlook reported SPF, DKIM and DMARC pass.
+
+---
+
 # Architecture Benefits
 
 The current architecture provides:

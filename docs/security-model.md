@@ -39,6 +39,8 @@ Application Services
 
 The first protection layer is provided by the Hetzner upstream firewall.
 
+The firewall opens ports 25, 80, 443, 465, 587 and 993, plus the VPN port. SSH and administrative access are reached through the VPN.
+
 This firewall filters unwanted traffic before packets reach the virtual server itself.
 
 Advantages include:
@@ -132,7 +134,12 @@ The platform implements modern mail authentication and security standards includ
 - MTA-STS
 - TLS-RPT
 - DNSSEC
-- DANE/TLSA preparation
+
+MTA-STS for motobike.fun is published in enforce mode, with `mx` motobike.fun and `max_age` 86400. WebCit serves the policy from `/usr/local/webcit/static/.well-known/mta-sts.txt` at `https://mta-sts.motobike.fun/.well-known/mta-sts.txt`.
+
+Citadel DKIM-signs outbound mail with selector `dvbbt`. Rspamd ARC-signs the outbound relay with selector `arc2026`. DMARC is published as `p=reject` and `sp=reject`. SPF authorizes `65.109.224.37`.
+
+Since 2026-10-18, Citadel compares passwords case-sensitively (`c_case_sensitive_passwords=1`).
 
 These technologies improve:
 
@@ -156,7 +163,7 @@ Rspamd provides multiple protection and reputation functions:
 - abuse handling
 - heuristic analysis
 
-Rspamd operates with Redis as lightweight backend storage.
+Rspamd uses Redis for Bayesian statistics and the ARF suppression list. There is intentionally no global Redis block.
 
 ---
 
@@ -177,13 +184,12 @@ DNSSEC is enabled for signed domains.
 
 # Backup Security
 
-Backups are performed using BorgBackup within the Hetzner infrastructure.
+The production server is covered by daily Hetzner backups.
 
 The backup design focuses on:
 
-- incremental operation
+- a daily recovery point
 - reliability
-- low storage overhead
 - recovery simplicity
 
 ---

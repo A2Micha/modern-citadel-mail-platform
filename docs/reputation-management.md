@@ -53,6 +53,8 @@ Modern mail systems must continuously monitor and react to reputation signals.
 
 # Microsoft SNDS
 
+Microsoft SNDS is set up for the server IP.
+
 Microsoft Smart Network Data Services (SNDS) provides visibility into how Microsoft views sending IP addresses.
 
 SNDS exposes information such as:
@@ -71,6 +73,8 @@ SNDS acts as an external reputation telemetry system for Outlook, Hotmail and Mi
 ---
 
 # Microsoft JMRP
+
+Microsoft JMRP is set up for the server IP.
 
 Microsoft Junk Mail Reporting Program (JMRP) provides complaint feedback loops.
 
@@ -105,6 +109,12 @@ The platform uses ARF reports to improve:
 - future message handling
 - abuse response workflows
 
+Since 2026-10-18, incoming ARF reports (`multipart/report`, `message/feedback-report`) are handled by `motobike_arf.lua`.
+
+The module reads `Original-Rcpt-To` and stores a Redis key `suppression:<address>` for 180 days. Redis for this module is configured in `modules.d/motobike_arf.conf`. The script is loaded from `rspamd.local.lua`.
+
+Later outbound mail via `postfix/citadel-out` to that address is rejected with `554 5.7.1 Recipient suppressed (ARF complaint)`.
+
 ARF processing provides visibility into:
 
 - user complaints
@@ -120,7 +130,7 @@ Rspamd forms the central reputation and filtering engine.
 
 The platform integrates:
 
-- Redis backend storage
+- Redis for Bayes and ARF suppression
 - Bayesian learning
 - fuzzy hashing
 - reputation systems
@@ -136,19 +146,11 @@ This allows dynamic and adaptive filtering behavior.
 
 # Redis Backend
 
-Redis acts as the statistical backend for multiple reputation-related systems.
+Redis is used for Bayes statistics and for the ARF suppression list.
 
-Used for:
+There is intentionally no global Redis block. The ARF module configures its Redis server in `modules.d/motobike_arf.conf`.
 
-- Bayes statistics
-- fuzzy hashes
-- history storage
-- neural networks
-- reputation tracking
-- greylisting state
-- rate limiting
-
-Redis enables fast lookups and lightweight real-time reputation handling.
+Redis enables fast lookups for those two uses.
 
 ---
 
@@ -164,9 +166,9 @@ motobike_arf {
 }
 ```
 
-This module extends reputation and abuse handling capabilities beyond standard filtering.
+`motobike_arf.lua` turns an ARF complaint into a 180-day recipient suppression. Outbound delivery to a suppressed address stops on the Citadel relay with `554 5.7.1 Recipient suppressed (ARF complaint)`.
 
-The goal is integrating complaint intelligence directly into the filtering pipeline.
+Complaint handling sits in the same filtering pipeline as the outbound relay.
 
 ---
 
@@ -217,14 +219,19 @@ The platform focuses on maintaining strong deliverability across major providers
 
 This includes:
 
-- SPF alignment
-- DKIM signing
-- DMARC enforcement
-- ARC signing
+- SPF alignment for `65.109.224.37`
+- Citadel DKIM signing with selector `dvbbt`
+- DMARC `p=reject` and `sp=reject`
+- Rspamd ARC signing with selector `arc2026`
 - TLS consistency
 - stable reverse DNS
 - low complaint rates
-- adaptive abuse handling
+- ARF recipient suppression
+
+Verified delivery on 2026-10-18:
+
+- Gmail reports `dkim=pass` (`dvbbt`), `spf=pass`, `dmarc=pass` (`p=reject`), `arc=pass` and TLS 1.3
+- Microsoft/Outlook reports SPF, DKIM and DMARC pass
 
 Deliverability is treated as an operational process rather than a one-time configuration task.
 
@@ -250,7 +257,6 @@ The platform is designed to evolve toward increasingly adaptive mail reputation 
 
 Future goals include:
 
-- automated complaint suppression
 - reputation scoring
 - provider-specific reputation analysis
 - self-learning filtering behavior

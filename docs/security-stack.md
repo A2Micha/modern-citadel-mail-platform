@@ -45,14 +45,13 @@ Only required public services are exposed:
 
 | Port | Service |
 |---|---|
-| 25 | SMTP |
-| 80 | HTTP / ACME |
-| 443 | HTTPS |
-| 465 | SMTPS |
-| 587 | SMTP Submission |
-| 993 | IMAPS |
+| 25 | SMTP (Postfix) |
+| 80 | HTTP (WebCit `webcit-http` / ACME) |
+| 443 | HTTPS (WebCit `webcit-https`) |
+| 465 | Implicit TLS submission (Citadel) |
+| 587 | STARTTLS submission (Citadel) |
+| 993 | IMAPS (Citadel) |
 | 51820/UDP | WireGuard |
-| ICMP | Diagnostics |
 
 All other traffic is blocked at the infrastructure edge.
 
@@ -161,12 +160,22 @@ Postfix acts as the public SMTP edge service.
 Security features include:
 
 - relay restrictions
-- recipient validation
+- recipient verification
 - sender validation
 - SMTP rate limiting
 - queue separation
-- TLS enforcement
-- controlled submission handling
+- TLS on the public SMTP listener
+- a localhost-only outbound relay
+
+Postfix listens on port 25, runs the Rspamd milter, and delivers accepted mail to Citadel over the unfiltered LMTP socket.
+
+Since 2026-10-18, unknown recipients are rejected during the SMTP dialogue with `reject_unverified_recipient`. The response is `550 5.1.1` for unknown addresses on motobike.fun, g00r00.com and vibedullis.com.
+
+`message_size_limit` is 50 MB (`52428800`) on port 25 and on the outbound relay, matching Citadel.
+
+Mail to `root@` is aliased with `virtual_alias_maps` to the postmaster/admin mailbox.
+
+Client submission is handled by Citadel on 587 and 465. Outbound mail from Citadel goes to Postfix on `127.0.0.1:10025` (`postfix/citadel-out`). That listener accepts only `127.0.0.0/8` (`permit_mynetworks`, `reject`), uses no SASL and no TLS on the local hop, runs the Rspamd milter, and sets `receive_override_options=no_address_mappings` and `milter_default_action=accept`. Postfix then delivers to the Internet.
 
 Postfix is intentionally separated from mailbox handling responsibilities.
 
@@ -174,7 +183,11 @@ Postfix is intentionally separated from mailbox handling responsibilities.
 
 # LMTP Local Delivery
 
-Internal mail delivery uses LMTP over Unix domain sockets.
+Internal mail delivery uses the unfiltered LMTP socket:
+
+```text
+/usr/local/citadel/lmtp-unfiltered.socket
+```
 
 ```mermaid
 flowchart LR
@@ -200,16 +213,22 @@ Rspamd provides advanced mail filtering and message authentication.
 
 Features include:
 
-- DKIM signing
-- ARC signing
+- DKIM verification
+- ARC signing on the outbound relay
 - spam scoring
 - DNSBL checks
 - reputation analysis
 - policy enforcement
-- Redis integration
+- a sender blacklist
+- ARF recipient suppression
+- Redis for Bayes and that suppression list
 - Lua scripting support
 
-Rspamd is integrated using Postfix milters.
+Rspamd 3.4 is integrated using the Postfix milter on `localhost:11332`. `milter_headers` adds `Authentication-Results`.
+
+Citadel DKIM-signs outbound mail with selector `dvbbt`. Rspamd `dkim_signing` is disabled. ARC uses selector `arc2026` and domain motobike.fun for motobike.fun, g00r00.com and vibedullis.com. The TXT record `arc2026._domainkey.motobike.fun` is published at GoDaddy.
+
+The settings rule `outbound_citadel` matches 127.0.0.1 and ::1 and disables reject, add-header, rewrite-subject and greylist for that relay. A suppressed recipient is refused with `554 5.7.1 Recipient suppressed (ARF complaint)`.
 
 ---
 
@@ -219,12 +238,20 @@ The platform supports modern email security technologies:
 
 - SPF
 - DKIM
-- DMARC
+- DMARC (`p=reject`, `sp=reject`)
 - ARC
+- MTA-STS
 - DNSSEC
-- DANE/TLSA
 - TLSv1.2
 - TLSv1.3
+
+MTA-STS is served by WebCit in enforce mode (`mx` motobike.fun, `max_age` 86400) from `/usr/local/webcit/static/.well-known/mta-sts.txt`:
+
+```text
+https://mta-sts.motobike.fun/.well-known/mta-sts.txt
+```
+
+SPF authorizes `65.109.224.37`. Gmail validation on 2026-10-18 showed `dkim=pass` (`dvbbt`), `spf=pass`, `dmarc=pass`, `arc=pass` and TLS 1.3. Microsoft/Outlook showed SPF, DKIM and DMARC pass.
 
 This improves:
 
