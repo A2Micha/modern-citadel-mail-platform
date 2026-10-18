@@ -191,7 +191,8 @@ Advantages:
 | LMTP | Local delivery into Citadel through the unfiltered LMTP socket |
 | Rspamd | Spam filtering, ARC signing, policy enforcement and ARF suppression |
 | Redis | Bayesian statistics and the ARF suppression list |
-| Fail2Ban | Abuse protection and automated banning |
+| Fail2Ban | Bans for SSH, Postfix and Citadel authentication |
+| Certbot | Let's Encrypt certificates for Citadel, WebCit and Postfix |
 | nftables | Packet filtering and traffic control |
 | UFW | Host-level firewall management |
 | Hetzner Firewall | Upstream infrastructure firewall |
@@ -268,6 +269,8 @@ Features currently deployed:
 - multi-domain hosting
 - queue-based reliability
 - daily Hetzner backups
+- Fail2Ban `citadel-auth` jail
+- Let's Encrypt certificates with automatic renewal
 
 ---
 

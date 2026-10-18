@@ -96,14 +96,23 @@ Fail2Ban provides automatic intrusion response and abuse mitigation.
 
 Active jails:
 
-- citadel-msasubmission
-- postfix-msasubmission
-- postfix-smtp
-- smtp-citadel
-- smtp-submission
 - sshd
-- webcit
+- postfix-smtp
+- postfix-msasubmission
+- citadel-auth
 - perma-ban
+
+Citadel logs to the systemd journal. The `citadel-auth` jail uses the systemd backend and reads `citserver` messages with `SYSLOG_IDENTIFIER=citserver`. `journalflags=1` is set because `citserver` runs as the `citadel` user. The jail needs the Debian package `python3-systemd`.
+
+The jail matches Citadel's failed-password message, for IPv4 and IPv6:
+
+```text
+CtdlTryPassword: bad password specified for <user> ... Remote <host / IP>
+```
+
+Five failures in 10 minutes produce a ban of 1 hour on ports 80, 443, 465, 587 and 993. The jail counts failed passwords. A connection by itself does not create a ban. Localhost and the admin VPN are ignored.
+
+The earlier Citadel jails `citadel-msasubmission`, `smtp-citadel`, `smtp-submission` and `webcit` are retired.
 
 This protects against:
 
@@ -259,6 +268,36 @@ This improves:
 - transport security
 - anti-spoofing protection
 - SMTP trust validation
+
+---
+
+# Let's Encrypt
+
+Certificates come from Let's Encrypt through certbot, using the webroot authenticator.
+
+The webroot is `/usr/local/webcit/static`. WebCit serves `/.well-known/acme-challenge` on port 80, so issuance and renewal run while the services stay up.
+
+`certbot.timer` renews certificates automatically.
+
+The Citadel and WebCit certificate is used on ports 443, 465, 587 and 993. It covers:
+
+- motobike.fun
+- mail.motobike.fun
+- smtp.motobike.fun
+- mta-sts.motobike.fun
+- xmpp.motobike.fun
+- mail.g00r00.com
+- mail.vibedullis.com
+
+`/usr/local/citadel/keys/citadel.cer` and `citadel.key` are symlinks into `/etc/letsencrypt/live/`.
+
+Postfix on port 25 uses its own Let's Encrypt certificate.
+
+Renewal hooks:
+
+- a pre hook makes sure the webroot `.well-known` directory exists
+- a deploy hook checks the Citadel key symlinks and restarts `citadel`, `webcit-http` and `webcit-https`
+- that deploy hook reloads Postfix when the Postfix certificate renews
 
 ---
 

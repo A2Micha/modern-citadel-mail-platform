@@ -104,6 +104,28 @@ Since 2026-10-18, Citadel compares passwords case-sensitively (`c_case_sensitive
 
 ---
 
+# Certificates
+
+Citadel and WebCit use a Let's Encrypt certificate on ports 443, 465, 587 and 993. Postfix on port 25 uses its own Let's Encrypt certificate.
+
+certbot issues both with the webroot authenticator. The webroot is `/usr/local/webcit/static`. WebCit serves `/.well-known/acme-challenge` on port 80, and `certbot.timer` renews the certificates automatically.
+
+The Citadel and WebCit certificate covers:
+
+- motobike.fun
+- mail.motobike.fun
+- smtp.motobike.fun
+- mta-sts.motobike.fun
+- xmpp.motobike.fun
+- mail.g00r00.com
+- mail.vibedullis.com
+
+`/usr/local/citadel/keys/citadel.cer` and `citadel.key` are symlinks into `/etc/letsencrypt/live/`.
+
+A pre hook makes sure the webroot `.well-known` directory exists. A deploy hook checks those symlinks and restarts `citadel`, `webcit-http` and `webcit-https`. It reloads Postfix when the Postfix certificate renews.
+
+---
+
 # Modern Security Integration
 
 The original Citadel architecture predates many modern mail security standards.
