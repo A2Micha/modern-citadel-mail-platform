@@ -60,10 +60,10 @@ This aligns with the overall platform philosophy:
 
 # WKD Directory Structure
 
-The WKD directory structure was created directly inside the WebCit static content directory.
+WebCit serves the WKD directory from its static content directory.
 
 ```text
-/usr/local/webcit/.well-known/openpgpkey/
+/usr/local/webcit/static/.well-known/openpgpkey/
 ```
 
 Structure:
@@ -100,33 +100,30 @@ The existence of this file confirms WKD support for compatible clients.
 
 # GnuPG Key Generation
 
-The OpenPGP key was generated using modern elliptic curve cryptography.
-
-Generated key type:
-
-```text
-ed25519
-cv25519
-```
+The published OpenPGP key is RSA 4096.
 
 Properties:
 
-- Ed25519 signing key
-- Curve25519 encryption subkey
-- modern ECC cryptography
-- reduced key size
-- strong security properties
+- RSA 4096
+- created 2025-03-02
+- no expiry
 
-Generated identity:
+Identity:
 
 ```text
-Michael <michael@motobike.fun>
+Michael Geller <michael@motobike.fun>
 ```
 
-Observed key fingerprint:
+Fingerprint:
 
 ```text
-80626BF28DD00F966486F4A4D4D99663744BE9A3
+E1BD FF0F DB6B DCF6 3744 C6B5 F11A 0D46 167D 7369
+```
+
+Long key ID:
+
+```text
+F11A0D46167D7369
 ```
 
 ---
@@ -153,10 +150,16 @@ This hash becomes the public key filename.
 
 # Public Key Publication
 
-The exported OpenPGP public key is published at:
+The direct-method key is published at:
 
 ```text
-https://motobike.fun/.well-known/openpgpkey/hu/n6h6dt1ftdd9w3y3sujj5oxwejt8uqob
+https://motobike.fun/.well-known/openpgpkey/hu/n6h6dt1ftdd9w3y3sujj5oxwejt8uqob?l=michael
+```
+
+The policy file is published beside it:
+
+```text
+https://motobike.fun/.well-known/openpgpkey/policy
 ```
 
 The key was exported using:
@@ -192,8 +195,8 @@ gpg --auto-key-locate clear,wkd --locate-keys michael@motobike.fun
 Result:
 
 ```text
-pub   ed25519
-uid   Michael <michael@motobike.fun>
+pub   rsa4096 2025-03-02
+uid   Michael Geller <michael@motobike.fun>
 ```
 
 This confirms:

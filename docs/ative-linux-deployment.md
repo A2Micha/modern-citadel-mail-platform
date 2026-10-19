@@ -84,7 +84,7 @@ Each service performs a dedicated task.
 |---|---|
 | Postfix | SMTP transport and queue management |
 | Rspamd | Filtering and policy engine |
-| Redis | Statistical backend |
+| Redis | Bayes statistics and ARF suppression |
 | Citadel | Mailstore and collaboration |
 | WireGuard | Administrative VPN |
 | nftables | Packet filtering |
@@ -105,9 +105,11 @@ Internal services communicate using local sockets whenever possible.
 
 Examples:
 
-- Postfix → Rspamd Milter
-- Postfix → LMTP socket
-- Citadel local delivery
+- Postfix → Rspamd milter on `localhost:11332`
+- Postfix → unfiltered LMTP socket
+- Citadel → Postfix outbound relay on `127.0.0.1:10025`
+
+The outbound relay is a localhost TCP listener (`postfix/citadel-out`). It accepts mail from `127.0.0.0/8` only. Local delivery into Citadel stays on the unfiltered LMTP socket.
 
 Benefits include:
 

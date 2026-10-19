@@ -104,7 +104,7 @@ Even with modern technologies such as:
 - DNSSEC
 - BIMI
 - LMTP
-- TLSA
+- MTA-STS
 - Redis
 
 the system remains lightweight and resource efficient.
@@ -135,19 +135,20 @@ Citadel
 
 Handles:
 
-- SMTP edge transport
+- SMTP edge transport on port 25
+- recipient verification
 - queue management
 - TLS
 - retry handling
-- external mail transport
+- the localhost outbound relay on `127.0.0.1:10025`
 
 ## Rspamd
 
 Handles:
 
 - spam filtering
-- DKIM signing
-- ARC
+- DKIM verification
+- ARC signing on the outbound relay
 - DMARC evaluation
 - policy enforcement
 
@@ -156,6 +157,8 @@ Handles:
 Handles:
 
 - mailbox storage
+- submission on 587 and 465
+- DKIM signing with selector `dvbbt`
 - IMAP
 - webmail
 - groupware functionality
@@ -183,7 +186,7 @@ The stack therefore integrates:
 - ARC
 - BIMI
 - DNSSEC
-- TLSA / DANE
+- MTA-STS
 - TLSv1.3
 - Fail2Ban
 - GeoIP filtering

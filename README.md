@@ -34,7 +34,7 @@ The goal is proving that classic Unix architecture can still provide modern and 
 - LMTP local delivery
 - Rspamd spam filtering
 - DKIM / DMARC / ARC
-- TLSA / DANE support
+- MTA-STS
 
 ## Security
 
@@ -76,7 +76,15 @@ A[Internet]
 
 Incoming mail follows this path:
 
-Internet → Postfix → Rspamd → LMTP → Citadel
+Internet → Postfix (port 25) → Rspamd milter → unfiltered LMTP → Citadel
+
+Postfix checks recipients against Citadel during the SMTP dialogue. Unknown addresses on motobike.fun, g00r00.com and vibedullis.com are refused with `550 5.1.1`, so those messages never become backscatter.
+
+Outgoing mail follows this path:
+
+Mail client → Citadel submission → Citadel DKIM → Postfix `127.0.0.1:10025` → Rspamd ARC → Internet
+
+Citadel signs outbound mail with DKIM selector `dvbbt`. Rspamd ARC-signs that relay with selector `arc2026` and leaves DKIM signing disabled.
 
 This architecture separates:
 
@@ -178,18 +186,19 @@ Advantages:
 
 | Component | Purpose |
 |---|---|
-| Citadel Groupware | Mailstore, groupware and collaboration platform |
-| Postfix | SMTP edge transport and queue management |
-| LMTP | Direct local mail delivery into Citadel |
-| Rspamd | Spam filtering, DKIM, ARC and policy enforcement |
-| Redis | Rspamd statistics and cache backend |
-| Fail2Ban | Abuse protection and automated banning |
+| Citadel Groupware | Mailstore, submission, DKIM signing and groupware |
+| Postfix | SMTP edge, outbound relay, recipient verification and queues |
+| LMTP | Local delivery into Citadel through the unfiltered LMTP socket |
+| Rspamd | Spam filtering, ARC signing, policy enforcement and ARF suppression |
+| Redis | Bayesian statistics and the ARF suppression list |
+| Fail2Ban | Bans for SSH, Postfix and Citadel authentication |
+| Certbot | Let's Encrypt certificates for Citadel, WebCit and Postfix |
 | nftables | Packet filtering and traffic control |
 | UFW | Host-level firewall management |
 | Hetzner Firewall | Upstream infrastructure firewall |
 | WireGuard | Secure administrative VPN access |
-| WebCit | Webmail and groupware frontend |
-| OpenDKIM / ARC | Message signing and authentication |
+| WebCit | Webmail and groupware frontend (`webcit-http`, `webcit-https`) |
+| MTA-STS | Enforced TLS policy for motobike.fun |
 | Postfix Queue | Reliable deferred mail handling |
 
 ---
@@ -248,13 +257,20 @@ Features currently deployed:
 
 - LMTP delivery
 - Rspamd filtering
-- ARC signing
-- DKIM signing
-- DMARC validation
+- recipient verification
+- Citadel DKIM signing (`dvbbt`)
+- Rspamd ARC signing (`arc2026`)
+- DMARC `p=reject` / `sp=reject`
+- MTA-STS enforce
+- ARF recipient suppression
+- case-sensitive mailbox passwords
 - WireGuard administration
 - GeoIP filtering
 - multi-domain hosting
 - queue-based reliability
+- daily Hetzner backups
+- Fail2Ban `citadel-auth` jail
+- Let's Encrypt certificates with automatic renewal
 
 ---
 

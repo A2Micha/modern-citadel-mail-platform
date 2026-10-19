@@ -78,6 +78,16 @@ LMTP integrates naturally with Unix-style local delivery design.
 
 ---
 
+# Recipient Verification
+
+Since 2026-10-18, unknown recipients are refused during the SMTP dialogue, before Postfix queues the message.
+
+Postfix verifies the recipient against Citadel (`reject_unverified_recipient`). Unknown addresses on motobike.fun, g00r00.com and vibedullis.com receive `550 5.1.1`.
+
+Those messages stay out of the queue. Unknown addresses on the three domains produce no backscatter.
+
+---
+
 # Deferred Delivery Philosophy
 
 Temporary failures are expected behavior in distributed mail systems.

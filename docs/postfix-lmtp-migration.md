@@ -98,8 +98,8 @@ Postfix remains responsible for:
 Rspamd remains responsible for:
 
 - Spam filtering
-- DKIM
-- ARC
+- DKIM verification
+- ARC signing on the outbound relay
 - DMARC
 - Bayes
 - Policy filtering
@@ -108,6 +108,8 @@ Citadel remains responsible for:
 
 - Mail storage
 - IMAP
+- Submission on 587 and 465
+- DKIM signing with selector `dvbbt`
 - Groupware
 - Webmail
 - Collaboration
@@ -162,9 +164,9 @@ citadel-lmtp unix  -       n       n       -       -       lmtp
 `/etc/postfix/transport` was modified:
 
 ```text
-m****.fun       citadel-lmtp:unix:/usr/local/citadel/lmtp-unfiltered.socket
-g*****.com         citadel-lmtp:unix:/usr/local/citadel/lmtp-unfiltered.socket
-b*********.biz citadel-lmtp:unix:/usr/local/citadel/lmtp-unfiltered.socket
+motobike.fun     citadel-lmtp:unix:/usr/local/citadel/lmtp-unfiltered.socket
+g00r00.com       citadel-lmtp:unix:/usr/local/citadel/lmtp-unfiltered.socket
+vibedullis.com   citadel-lmtp:unix:/usr/local/citadel/lmtp-unfiltered.socket
 ```
 
 ---
@@ -234,6 +236,10 @@ stat=250 Message accepted.
 # Result
 
 The system now uses native LMTP delivery between Postfix and Citadel.
+
+Inbound mail on port 25 passes the Rspamd milter and is delivered to the unfiltered LMTP socket. Since 2026-10-18, Postfix rejects unknown recipients in the SMTP dialogue (`reject_unverified_recipient`, `550 5.1.1`) for motobike.fun, g00r00.com and vibedullis.com.
+
+Citadel submits outbound mail to the localhost Postfix listener `postfix/citadel-out` on `127.0.0.1:10025`. That listener runs the Rspamd milter, and Postfix delivers the mail to the Internet. Citadel DKIM-signs with selector `dvbbt` before the handoff.
 
 Final architecture:
 
